@@ -1890,13 +1890,17 @@
    ═══════════════════════════════════════════════════════════════════════ */
 
 .wzp-nb {
-	position:      relative;
+	position:      sticky;
+	top:           0;
+	width:         100%;
 	z-index:       1000;
 	background:    var(--wzp-nb-bg, #ffffff);
 	border-bottom: 1px solid var(--wzp-nb-border, #efefef);
+	box-shadow:    0 2px 24px rgba(0,0,0,.07);
 	transition:    transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* Sticky is now the default on .wzp-nb; keep the modifier as an alias. */
 .wzp-nb--sticky {
 	position:   sticky;
 	top:        0;
@@ -2999,7 +3003,7 @@ body.wzp-mobile-nav-open::before {
 
 .wzp-pd__inner {
 	display:               grid;
-	grid-template-columns: 1fr 1fr;
+	grid-template-columns: 1fr 1.4fr;
 	gap:                   48px 56px;
 	max-width:             100%;
 	margin:                0 auto;
@@ -3038,7 +3042,7 @@ body.wzp-mobile-nav-open::before {
 	background:    var(--wzp-surface-alt);
 }
 
-.wzp-pd__main-img { display: block; width: 100%; height: auto; transition: opacity 0.22s ease; }
+.wzp-pd__main-img { display: block; width: 100%; height: 580px; object-fit: cover; object-position: top center; transition: opacity 0.22s ease; }
 
 .wzp-pd__main-img--loading { opacity: 0.4; }
 
