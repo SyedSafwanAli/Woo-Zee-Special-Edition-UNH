@@ -275,7 +275,7 @@ echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb_schema,
 			<?php endif; ?>
 
 			<!-- ── Add to cart form ─────────────────────────────────────── -->
-			<form class="wzp-pd__form cart"
+			<form class="wzp-pd__form"
 			      method="post"
 			      action="<?php echo esc_url( $permalink ); ?>"
 			      enctype="multipart/form-data"
@@ -344,7 +344,7 @@ echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb_schema,
 					<button type="submit"
 					        name="add-to-cart"
 					        value="<?php echo esc_attr( $product_id ); ?>"
-					        class="wzp-pd__atc-btn single_add_to_cart_button<?php echo ! $is_in_stock ? ' disabled' : ''; ?>"
+					        class="wzp-pd__atc-btn<?php echo ! $is_in_stock ? ' disabled' : ''; ?>"
 					        <?php echo ! $is_in_stock ? 'disabled aria-disabled="true"' : ''; ?>>
 						<?php echo $is_in_stock
 							? esc_html__( 'Add To Bag', 'woo-zee-plugin' )

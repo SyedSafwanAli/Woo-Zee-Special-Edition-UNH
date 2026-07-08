@@ -476,8 +476,10 @@
 				self.ajaxCart( 'wzp_get_cart', {} );
 				openCart();
 
-				// Swap the clicked quick-add button → "View Cart" (black)
-				if ( $button && $button.length ) {
+				// Swap the clicked quick-add button → "View Cart" (black).
+				// Skip the product-detail "Add To Bag" button — it must keep
+				// working as an add-to-cart submit, not turn into a cart link.
+				if ( $button && $button.length && ! $button.hasClass( 'wzp-pd__atc-btn' ) ) {
 					$button
 						.text( wzpData.viewCartText || 'View Cart' )
 						.attr( 'href', wzpData.cartUrl || '#' )
@@ -666,17 +668,20 @@
 				if ( $btn.hasClass( 'disabled' ) ) { return; }
 
 				e.preventDefault();
+				e.stopImmediatePropagation(); // block theme/Divi handlers on the same form
 
 				$btn.prop( 'disabled', true ).addClass( 'wzp-pd__atc-btn--loading' );
 
 				// .serialize() omits submit button value — add product_id manually.
+				// NOTE: never send an "add-to-cart" param here — WooCommerce's
+				// form handler would process it on wp_loaded AND the wc-ajax
+				// handler would process product_id, adding the item twice.
 				var data = $form.serialize()
-					+ '&add-to-cart=' + productId
-					+ '&product_id='  + productId;
+					+ '&product_id=' + productId;
 
 				$.ajax( {
 					type: 'POST',
-					url:  '/?wc-ajax=add_to_cart',
+					url:  ( wzpData && wzpData.wcAjaxUrl ) ? wzpData.wcAjaxUrl.replace( '%%endpoint%%', 'add_to_cart' ) : '/?wc-ajax=add_to_cart',
 					data: data,
 					success: function ( response ) {
 						if ( response ) {
@@ -743,10 +748,13 @@
 				$btn.prop( 'disabled', true );
 
 				// Use WooCommerce's wc-ajax endpoint to silently add then redirect.
+				// .serialize() omits the submit button value — add product_id manually.
+				// (No "add-to-cart" param — it would double-add, see bindAddToBag.)
+				var productId = $btn.closest( '.wzp-pd' ).find( '.wzp-pd__atc-btn' ).val() || $form.data( 'product-id' );
 				$.ajax( {
 					type:     'POST',
-					url:      '/?wc-ajax=add_to_cart',
-					data:     $form.serialize(),
+					url:      ( wzpData && wzpData.wcAjaxUrl ) ? wzpData.wcAjaxUrl.replace( '%%endpoint%%', 'add_to_cart' ) : '/?wc-ajax=add_to_cart',
+					data:     $form.serialize() + '&product_id=' + productId,
 					complete: function () {
 						window.location.href = checkoutUrl;
 					}

@@ -46,12 +46,17 @@ class WZP_Assets {
 		wp_enqueue_style( 'swiper' );
 		wp_enqueue_script( 'swiper' );
 
+		// Cache-busting: use file modification time so browsers always pick up
+		// edited assets without needing a hard refresh.
+		$style_ver  = (string) ( @filemtime( WZP_PATH . 'assets/css/woo-zee-style.css' ) ?: WZP_VERSION );
+		$script_ver = (string) ( @filemtime( WZP_PATH . 'assets/js/woo-zee-script.js' ) ?: WZP_VERSION );
+
 		// ── Plugin stylesheet ─────────────────────────────────────────────────
 		wp_enqueue_style(
 			'woo-zee-style',
 			WZP_URL . 'assets/css/woo-zee-style.css',
 			array( 'swiper' ),
-			WZP_VERSION
+			$style_ver
 		);
 
 		// ── Shop page stylesheet ──────────────────────────────────────────────
@@ -107,7 +112,7 @@ class WZP_Assets {
 			'woo-zee-script',
 			WZP_URL . 'assets/js/woo-zee-script.js',
 			array( 'jquery', 'swiper' ),
-			WZP_VERSION,
+			$script_ver,
 			true // load in footer
 		);
 
@@ -160,6 +165,9 @@ class WZP_Assets {
 			'wzpData',
 			array(
 				'ajaxUrl'         => esc_url( admin_url( 'admin-ajax.php' ) ),
+				'wcAjaxUrl'       => class_exists( 'WC_AJAX' )
+					? WC_AJAX::get_endpoint( '%%endpoint%%' )
+					: home_url( '/?wc-ajax=%%endpoint%%' ),
 				'nonce'           => wp_create_nonce( 'wzp_nonce' ),
 				'cartNonce'       => wp_create_nonce( 'wzp_cart_nonce' ),
 				'storeApiNonce'   => wp_create_nonce( 'wc_store_api' ),
