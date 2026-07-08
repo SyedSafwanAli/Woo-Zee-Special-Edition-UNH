@@ -24,6 +24,7 @@ $active_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'hero-slide
 $tabs = array(
 	'card-style'         => __( 'Card Style',          'woo-zee-plugin' ),
 	'hero-slider'        => __( 'Hero Slider',        'woo-zee-plugin' ),
+	'image-slider'       => __( 'Image Slider',       'woo-zee-plugin' ),
 	'product-grid'       => __( 'Product Grid',        'woo-zee-plugin' ),
 	'product-carousel'   => __( 'Product Carousel',    'woo-zee-plugin' ),
 	'category-carousel'  => __( 'Category Carousel',   'woo-zee-plugin' ),
@@ -551,6 +552,281 @@ $wc_categories = wzp_get_wc_categories();
 
 		</div>
 		<?php endif; /* hero-slider */ ?>
+
+		<?php /* ══════════════════════════════════════════════════════════════
+		   TAB 1b — Image Slider
+		   ══════════════════════════════════════════════════════════════════ */ ?>
+		<?php if ( 'image-slider' === $active_tab ) : ?>
+		<?php
+		$is_opts = wp_parse_args(
+			(array) get_option( 'wzp_image_slider_options', array() ),
+			array(
+				'slides'   => array(),
+				'images'   => array(),
+				'height'   => '500',
+				'fit'      => 'cover',
+				'autoplay' => 'yes',
+				'delay'    => '4000',
+				'loop'     => 'yes',
+				'arrows'   => 'yes',
+				'dots'     => 'yes',
+				'radius'   => '0',
+			)
+		);
+		// Slides source of truth; migrate a legacy flat "images" list if present.
+		$is_slides = ( ! empty( $is_opts['slides'] ) && is_array( $is_opts['slides'] ) )
+			? $is_opts['slides']
+			: array();
+		if ( empty( $is_slides ) && ! empty( $is_opts['images'] ) && is_array( $is_opts['images'] ) ) {
+			foreach ( $is_opts['images'] as $id ) {
+				$is_slides[] = array( 'image_id' => absint( $id ), 'mobile_id' => 0, 'link' => '' );
+			}
+		}
+		?>
+		<div class="wzp-tab-content wzp-tab-content--active" id="wzp-tab-image-slider">
+
+			<h2 class="wzp-section-title"><?php esc_html_e( 'Image Slider', 'woo-zee-plugin' ); ?></h2>
+			<p class="description">
+				<?php esc_html_e( 'Add slides below. Each slide can have a desktop image, an optional different image for mobile, and an optional link. Then paste the shortcode on any page.', 'woo-zee-plugin' ); ?>
+			</p>
+			<p class="description">
+				<strong><?php esc_html_e( 'Shortcode:', 'woo-zee-plugin' ); ?></strong>
+				<code>[wzp_image_slider]</code>
+				<button type="button" class="button wzp-copy-btn" data-shortcode="[wzp_image_slider]"><?php esc_html_e( 'Copy', 'woo-zee-plugin' ); ?></button>
+			</p>
+
+			<form method="post" action="options.php" novalidate>
+				<?php settings_fields( 'wzp_image_slider_group' ); ?>
+
+				<?php /* ─ Slides repeater ──────────────────────────────────── */ ?>
+				<h3 class="wzp-subsection-title"><?php esc_html_e( 'Slides', 'woo-zee-plugin' ); ?></h3>
+
+				<div id="wzp-is-rows" data-next-index="<?php echo esc_attr( count( $is_slides ) ); ?>">
+					<?php foreach ( $is_slides as $i => $slide ) :
+						$d_id    = absint( $slide['image_id']  ?? 0 );
+						$m_id    = absint( $slide['mobile_id'] ?? 0 );
+						$link    = esc_url( $slide['link'] ?? '' );
+						$d_thumb = $d_id ? wp_get_attachment_image_url( $d_id, 'thumbnail' ) : '';
+						$m_thumb = $m_id ? wp_get_attachment_image_url( $m_id, 'thumbnail' ) : '';
+					?>
+					<div class="wzp-is-row" data-index="<?php echo esc_attr( $i ); ?>">
+						<div class="wzp-is-row__media">
+
+							<div class="wzp-is-pick">
+								<label><?php esc_html_e( 'Desktop Image', 'woo-zee-plugin' ); ?></label>
+								<input type="hidden" class="wzp-is-img-id" name="wzp_image_slider_options[slides][<?php echo esc_attr( $i ); ?>][image_id]" value="<?php echo esc_attr( $d_id ?: '' ); ?>">
+								<div class="wzp-is-pick__preview"><?php if ( $d_thumb ) : ?><img src="<?php echo esc_url( $d_thumb ); ?>" alt=""><?php endif; ?></div>
+								<button type="button" class="button wzp-is-pick-btn"><?php echo $d_thumb ? esc_html__( 'Change', 'woo-zee-plugin' ) : esc_html__( 'Select', 'woo-zee-plugin' ); ?></button>
+								<button type="button" class="button-link button-link-delete wzp-is-pick-remove" style="<?php echo $d_thumb ? '' : 'display:none'; ?>"><?php esc_html_e( 'Remove', 'woo-zee-plugin' ); ?></button>
+							</div>
+
+							<div class="wzp-is-pick">
+								<label><?php esc_html_e( 'Mobile Image', 'woo-zee-plugin' ); ?> <span class="description">(<?php esc_html_e( 'optional', 'woo-zee-plugin' ); ?>)</span></label>
+								<input type="hidden" class="wzp-is-img-id" name="wzp_image_slider_options[slides][<?php echo esc_attr( $i ); ?>][mobile_id]" value="<?php echo esc_attr( $m_id ?: '' ); ?>">
+								<div class="wzp-is-pick__preview"><?php if ( $m_thumb ) : ?><img src="<?php echo esc_url( $m_thumb ); ?>" alt=""><?php endif; ?></div>
+								<button type="button" class="button wzp-is-pick-btn"><?php echo $m_thumb ? esc_html__( 'Change', 'woo-zee-plugin' ) : esc_html__( 'Select', 'woo-zee-plugin' ); ?></button>
+								<button type="button" class="button-link button-link-delete wzp-is-pick-remove" style="<?php echo $m_thumb ? '' : 'display:none'; ?>"><?php esc_html_e( 'Remove', 'woo-zee-plugin' ); ?></button>
+							</div>
+
+							<div class="wzp-is-pick wzp-is-pick--link">
+								<label><?php esc_html_e( 'Link', 'woo-zee-plugin' ); ?> <span class="description">(<?php esc_html_e( 'optional', 'woo-zee-plugin' ); ?>)</span></label>
+								<input type="url" class="regular-text wzp-is-link" name="wzp_image_slider_options[slides][<?php echo esc_attr( $i ); ?>][link]" value="<?php echo esc_attr( $link ); ?>" placeholder="https://">
+							</div>
+
+						</div>
+						<button type="button" class="button-link button-link-delete wzp-is-row-remove"><?php esc_html_e( 'Remove slide', 'woo-zee-plugin' ); ?></button>
+					</div>
+					<?php endforeach; ?>
+				</div>
+
+				<p>
+					<button type="button" class="button button-secondary" id="wzp-is-add-row">
+						+ <?php esc_html_e( 'Add Slide', 'woo-zee-plugin' ); ?>
+					</button>
+				</p>
+				<p class="description"><?php esc_html_e( 'Slides play in the order shown. Mobile image (if set) is used on screens ≤ 768px.', 'woo-zee-plugin' ); ?></p>
+
+				<?php /* ─ Settings ─────────────────────────────────────────── */ ?>
+				<h3 class="wzp-subsection-title"><?php esc_html_e( 'Settings', 'woo-zee-plugin' ); ?></h3>
+				<table class="form-table wzp-form-table" role="presentation">
+					<tr>
+						<th><label for="wzp-is-height"><?php esc_html_e( 'Height (px)', 'woo-zee-plugin' ); ?></label></th>
+						<td>
+							<input type="number" id="wzp-is-height" name="wzp_image_slider_options[height]"
+							       value="<?php echo esc_attr( $is_opts['height'] ); ?>" min="100" max="1200" step="10" class="small-text">
+							<span class="description"><?php esc_html_e( 'Slider height in pixels.', 'woo-zee-plugin' ); ?></span>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="wzp-is-fit"><?php esc_html_e( 'Image Fit', 'woo-zee-plugin' ); ?></label></th>
+						<td>
+							<select id="wzp-is-fit" name="wzp_image_slider_options[fit]" class="wzp-select wzp-select--narrow">
+								<option value="cover"   <?php selected( $is_opts['fit'], 'cover' ); ?>><?php esc_html_e( 'Cover (fill & crop)', 'woo-zee-plugin' ); ?></option>
+								<option value="contain" <?php selected( $is_opts['fit'], 'contain' ); ?>><?php esc_html_e( 'Contain (show full image)', 'woo-zee-plugin' ); ?></option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="wzp-is-radius"><?php esc_html_e( 'Corner Radius (px)', 'woo-zee-plugin' ); ?></label></th>
+						<td>
+							<input type="number" id="wzp-is-radius" name="wzp_image_slider_options[radius]"
+							       value="<?php echo esc_attr( $is_opts['radius'] ); ?>" min="0" max="100" step="1" class="small-text">
+						</td>
+					</tr>
+					<tr>
+						<th><?php esc_html_e( 'Autoplay', 'woo-zee-plugin' ); ?></th>
+						<td>
+							<label class="wzp-toggle-label" for="wzp-is-autoplay">
+								<input type="hidden" name="wzp_image_slider_options[autoplay]" value="no">
+								<input type="checkbox" id="wzp-is-autoplay" name="wzp_image_slider_options[autoplay]" value="yes"
+								       class="wzp-toggle-checkbox" <?php checked( $is_opts['autoplay'], 'yes' ); ?>>
+								<span class="wzp-toggle-track" aria-hidden="true"></span>
+								<?php esc_html_e( 'Auto-advance slides', 'woo-zee-plugin' ); ?>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="wzp-is-delay"><?php esc_html_e( 'Autoplay Speed (ms)', 'woo-zee-plugin' ); ?></label></th>
+						<td>
+							<input type="number" id="wzp-is-delay" name="wzp_image_slider_options[delay]"
+							       value="<?php echo esc_attr( $is_opts['delay'] ); ?>" min="1000" max="15000" step="500" class="small-text">
+						</td>
+					</tr>
+					<tr>
+						<th><?php esc_html_e( 'Loop', 'woo-zee-plugin' ); ?></th>
+						<td>
+							<label class="wzp-toggle-label" for="wzp-is-loop">
+								<input type="hidden" name="wzp_image_slider_options[loop]" value="no">
+								<input type="checkbox" id="wzp-is-loop" name="wzp_image_slider_options[loop]" value="yes"
+								       class="wzp-toggle-checkbox" <?php checked( $is_opts['loop'], 'yes' ); ?>>
+								<span class="wzp-toggle-track" aria-hidden="true"></span>
+								<?php esc_html_e( 'Repeat from start', 'woo-zee-plugin' ); ?>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<th><?php esc_html_e( 'Arrows', 'woo-zee-plugin' ); ?></th>
+						<td>
+							<label class="wzp-toggle-label" for="wzp-is-arrows">
+								<input type="hidden" name="wzp_image_slider_options[arrows]" value="no">
+								<input type="checkbox" id="wzp-is-arrows" name="wzp_image_slider_options[arrows]" value="yes"
+								       class="wzp-toggle-checkbox" <?php checked( $is_opts['arrows'], 'yes' ); ?>>
+								<span class="wzp-toggle-track" aria-hidden="true"></span>
+								<?php esc_html_e( 'Show previous / next arrows', 'woo-zee-plugin' ); ?>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<th><?php esc_html_e( 'Dots', 'woo-zee-plugin' ); ?></th>
+						<td>
+							<label class="wzp-toggle-label" for="wzp-is-dots">
+								<input type="hidden" name="wzp_image_slider_options[dots]" value="no">
+								<input type="checkbox" id="wzp-is-dots" name="wzp_image_slider_options[dots]" value="yes"
+								       class="wzp-toggle-checkbox" <?php checked( $is_opts['dots'], 'yes' ); ?>>
+								<span class="wzp-toggle-track" aria-hidden="true"></span>
+								<?php esc_html_e( 'Show pagination dots', 'woo-zee-plugin' ); ?>
+							</label>
+						</td>
+					</tr>
+				</table>
+
+				<?php submit_button( __( 'Save Image Slider', 'woo-zee-plugin' ), 'primary wzp-submit-btn' ); ?>
+			</form>
+
+			<style>
+			.wzp-is-row{border:1px solid #dcdcde;border-radius:8px;padding:16px;margin:0 0 14px;background:#fff;position:relative;}
+			.wzp-is-row__media{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;}
+			.wzp-is-pick{display:flex;flex-direction:column;gap:6px;min-width:140px;}
+			.wzp-is-pick--link{flex:1;min-width:220px;}
+			.wzp-is-pick > label{font-weight:600;font-size:12px;}
+			.wzp-is-pick__preview{width:120px;height:120px;border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;background:#f6f7f7;display:flex;align-items:center;justify-content:center;}
+			.wzp-is-pick__preview img{width:100%;height:100%;object-fit:cover;display:block;}
+			.wzp-is-pick__preview:empty::before{content:"—";color:#c3c4c7;font-size:22px;}
+			.wzp-is-row-remove{position:absolute;top:12px;right:14px;}
+			#wzp-is-rows:empty + p::before{content:"";}
+			</style>
+
+			<script>
+			( function ( $ ) {
+				var $rows = $( '#wzp-is-rows' );
+
+				function rowTemplate( i ) {
+					var base = 'wzp_image_slider_options[slides][' + i + ']';
+					return '' +
+					'<div class="wzp-is-row" data-index="' + i + '">' +
+						'<div class="wzp-is-row__media">' +
+							'<div class="wzp-is-pick">' +
+								'<label><?php echo esc_js( __( 'Desktop Image', 'woo-zee-plugin' ) ); ?></label>' +
+								'<input type="hidden" class="wzp-is-img-id" name="' + base + '[image_id]" value="">' +
+								'<div class="wzp-is-pick__preview"></div>' +
+								'<button type="button" class="button wzp-is-pick-btn"><?php echo esc_js( __( 'Select', 'woo-zee-plugin' ) ); ?></button>' +
+								'<button type="button" class="button-link button-link-delete wzp-is-pick-remove" style="display:none"><?php echo esc_js( __( 'Remove', 'woo-zee-plugin' ) ); ?></button>' +
+							'</div>' +
+							'<div class="wzp-is-pick">' +
+								'<label><?php echo esc_js( __( 'Mobile Image', 'woo-zee-plugin' ) ); ?> <span class="description">(<?php echo esc_js( __( 'optional', 'woo-zee-plugin' ) ); ?>)</span></label>' +
+								'<input type="hidden" class="wzp-is-img-id" name="' + base + '[mobile_id]" value="">' +
+								'<div class="wzp-is-pick__preview"></div>' +
+								'<button type="button" class="button wzp-is-pick-btn"><?php echo esc_js( __( 'Select', 'woo-zee-plugin' ) ); ?></button>' +
+								'<button type="button" class="button-link button-link-delete wzp-is-pick-remove" style="display:none"><?php echo esc_js( __( 'Remove', 'woo-zee-plugin' ) ); ?></button>' +
+							'</div>' +
+							'<div class="wzp-is-pick wzp-is-pick--link">' +
+								'<label><?php echo esc_js( __( 'Link', 'woo-zee-plugin' ) ); ?> <span class="description">(<?php echo esc_js( __( 'optional', 'woo-zee-plugin' ) ); ?>)</span></label>' +
+								'<input type="url" class="regular-text wzp-is-link" name="' + base + '[link]" value="" placeholder="https://">' +
+							'</div>' +
+						'</div>' +
+						'<button type="button" class="button-link button-link-delete wzp-is-row-remove"><?php echo esc_js( __( 'Remove slide', 'woo-zee-plugin' ) ); ?></button>' +
+					'</div>';
+				}
+
+				// Add a new slide row.
+				$( '#wzp-is-add-row' ).on( 'click', function () {
+					var i = parseInt( $rows.attr( 'data-next-index' ), 10 ) || 0;
+					$rows.append( rowTemplate( i ) );
+					$rows.attr( 'data-next-index', i + 1 );
+				} );
+
+				// Remove a slide row.
+				$rows.on( 'click', '.wzp-is-row-remove', function () {
+					$( this ).closest( '.wzp-is-row' ).remove();
+				} );
+
+				// Media picker (shared frame; works for both desktop and mobile buttons).
+				var frame, $ctx;
+				$rows.on( 'click', '.wzp-is-pick-btn', function () {
+					$ctx = $( this ).closest( '.wzp-is-pick' );
+					if ( ! frame ) {
+						frame = wp.media( {
+							title    : '<?php echo esc_js( __( 'Select Image', 'woo-zee-plugin' ) ); ?>',
+							button   : { text: '<?php echo esc_js( __( 'Use this image', 'woo-zee-plugin' ) ); ?>' },
+							multiple : false,
+							library  : { type: 'image' }
+						} );
+						frame.on( 'select', function () {
+							if ( ! $ctx ) { return; }
+							var att = frame.state().get( 'selection' ).first().toJSON();
+							var url = ( att.sizes && att.sizes.thumbnail ) ? att.sizes.thumbnail.url : att.url;
+							$ctx.find( '.wzp-is-img-id' ).val( att.id );
+							$ctx.find( '.wzp-is-pick__preview' ).html( '<img src="' + url + '" alt="">' );
+							$ctx.find( '.wzp-is-pick-btn' ).text( '<?php echo esc_js( __( 'Change', 'woo-zee-plugin' ) ); ?>' );
+							$ctx.find( '.wzp-is-pick-remove' ).show();
+						} );
+					}
+					frame.open();
+				} );
+
+				// Remove a chosen image.
+				$rows.on( 'click', '.wzp-is-pick-remove', function () {
+					var $pick = $( this ).closest( '.wzp-is-pick' );
+					$pick.find( '.wzp-is-img-id' ).val( '' );
+					$pick.find( '.wzp-is-pick__preview' ).empty();
+					$pick.find( '.wzp-is-pick-btn' ).text( '<?php echo esc_js( __( 'Select', 'woo-zee-plugin' ) ); ?>' );
+					$( this ).hide();
+				} );
+			} )( jQuery );
+			</script>
+
+		</div>
+		<?php endif; /* image-slider */ ?>
 
 		<?php /* ══════════════════════════════════════════════════════════════
 		   TAB 2 — Product Grid

@@ -16,6 +16,7 @@ class WZP_Shortcodes {
 	 */
 	private static $shortcodes = array(
 		'wzp_hero_slider'        => 'modules/hero-slider/render.php',
+		'wzp_image_slider'       => 'modules/image-slider/render.php',
 		'wzp_product_grid'       => 'modules/product-grid/render.php',
 		'wzp_product_carousel'   => 'modules/product-carousel/render.php',
 		'wzp_category_carousel'  => 'modules/category-carousel/render.php',

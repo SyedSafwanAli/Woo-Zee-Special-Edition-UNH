@@ -226,6 +226,73 @@ class WZP_Admin {
 				),
 			)
 		);
+
+		// ── Image Slider ──────────────────────────────────────────────────────
+		register_setting(
+			'wzp_image_slider_group',
+			'wzp_image_slider_options',
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => array( __CLASS__, 'sanitize_image_slider_options' ),
+				'default'           => array(
+					'images'   => array(),
+					'height'   => '500',
+					'fit'      => 'cover',
+					'autoplay' => 'yes',
+					'delay'    => '4000',
+					'loop'     => 'yes',
+					'arrows'   => 'yes',
+					'dots'     => 'yes',
+					'radius'   => '0',
+				),
+			)
+		);
+	}
+
+	/**
+	 * Sanitise the Image Slider options before saving.
+	 *
+	 * @param  mixed $raw  Raw POSTed value.
+	 * @return array       Cleaned options array.
+	 */
+	public static function sanitize_image_slider_options( $raw ) {
+		if ( ! is_array( $raw ) ) {
+			return array();
+		}
+
+		// Each slide: desktop image (required), optional mobile image, optional link.
+		$slides = array();
+		if ( ! empty( $raw['slides'] ) && is_array( $raw['slides'] ) ) {
+			foreach ( $raw['slides'] as $slide ) {
+				if ( ! is_array( $slide ) ) { continue; }
+				$image_id = absint( $slide['image_id'] ?? 0 );
+				if ( ! $image_id ) { continue; } // skip empty rows
+				$slides[] = array(
+					'image_id'  => $image_id,
+					'mobile_id' => absint( $slide['mobile_id'] ?? 0 ),
+					'link'      => esc_url_raw( wp_unslash( $slide['link'] ?? '' ) ),
+				);
+			}
+		}
+
+		$yes_no = function ( $v ) {
+			return in_array( strtolower( (string) $v ), array( 'yes', '1', 'true', 'on' ), true ) ? 'yes' : 'no';
+		};
+
+		return array(
+			'slides'   => $slides,
+			'images'   => array(), // legacy field kept empty; slides is the source of truth
+			'height'   => ( 'auto' === strtolower( trim( (string) ( $raw['height'] ?? '500' ) ) ) )
+			              ? 'auto'
+			              : (string) min( 1200, max( 100, absint( $raw['height'] ?? 500 ) ) ),
+			'fit'      => ( 'contain' === strtolower( (string) ( $raw['fit'] ?? 'cover' ) ) ) ? 'contain' : 'cover',
+			'autoplay' => $yes_no( $raw['autoplay'] ?? 'no' ),
+			'delay'    => (string) min( 15000, max( 1000, absint( $raw['delay'] ?? 4000 ) ) ),
+			'loop'     => $yes_no( $raw['loop'] ?? 'no' ),
+			'arrows'   => $yes_no( $raw['arrows'] ?? 'no' ),
+			'dots'     => $yes_no( $raw['dots'] ?? 'no' ),
+			'radius'   => (string) min( 100, max( 0, absint( $raw['radius'] ?? 0 ) ) ),
+		);
 	}
 
 	/**
