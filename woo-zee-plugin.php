@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name:       Woo Zee Plugin
- * Plugin URI:        https://github.com/SyedSafwanAli/Woo-Zee
+ * Plugin URI:        https://github.com/SyedSafwanAli/Woo-Zee-Special-Edition-UNH
  * Description:       A production-ready WooCommerce companion plugin with sliders, grids, carousels, lookbook, testimonials, and Instagram feed shortcodes.
- * Version:           1.2.0
+ * Version:           1.3.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            Syed Safwan Ali
@@ -12,7 +12,7 @@
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       woo-zee-plugin
  * Domain Path:       /languages
- * GitHub Plugin URI: SyedSafwanAli/Woo-Zee
+ * GitHub Plugin URI: SyedSafwanAli/Woo-Zee-Special-Edition-UNH
  * GitHub Branch:     main
  */
 
@@ -21,14 +21,14 @@ defined( 'ABSPATH' ) || exit;
 // ── Auto-updater (Plugin Update Checker — GitHub) ────────────────────────────
 require_once plugin_dir_path( __FILE__ ) . 'includes/lib/plugin-update-checker/plugin-update-checker.php';
 $wzp_update_checker = YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
-	'https://github.com/SyedSafwanAli/Woo-Zee/',
+	'https://github.com/SyedSafwanAli/Woo-Zee-Special-Edition-UNH/',
 	__FILE__,
 	'woo-zee-plugin'
 );
 $wzp_update_checker->setBranch( 'main' );
 
 // ── Constants ────────────────────────────────────────────────────────────────
-define( 'WZP_VERSION',  '1.2.0' );
+define( 'WZP_VERSION',  '1.3.0' );
 define( 'WZP_PATH',     plugin_dir_path( __FILE__ ) );
 define( 'WZP_URL',      plugin_dir_url( __FILE__ ) );
 define( 'WZP_BASENAME', plugin_basename( __FILE__ ) );
