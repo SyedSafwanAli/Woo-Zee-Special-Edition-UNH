@@ -679,6 +679,11 @@
 				var data = $form.serialize()
 					+ '&product_id=' + productId;
 
+				// Standard WooCommerce event — pixel/GTM trackers listen for it.
+				var qty = parseInt( $form.find( 'input[name="quantity"]' ).val(), 10 ) || 1;
+				$btn.attr( 'data-quantity', qty );
+				$( document.body ).trigger( 'adding_to_cart', [ $btn, { product_id: productId, quantity: qty } ] );
+
 				$.ajax( {
 					type: 'POST',
 					url:  ( wzpData && wzpData.wcAjaxUrl ) ? wzpData.wcAjaxUrl.replace( '%%endpoint%%', 'add_to_cart' ) : '/?wc-ajax=add_to_cart',

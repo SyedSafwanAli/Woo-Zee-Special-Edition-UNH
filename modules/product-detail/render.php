@@ -275,7 +275,7 @@ echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb_schema,
 			<?php endif; ?>
 
 			<!-- ── Add to cart form ─────────────────────────────────────── -->
-			<form class="wzp-pd__form"
+			<form class="wzp-pd__form cart"
 			      method="post"
 			      action="<?php echo esc_url( $permalink ); ?>"
 			      enctype="multipart/form-data"
@@ -325,6 +325,15 @@ echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb_schema,
 					<p class="wzp-pd__variation-msg" hidden></p>
 				<?php endif; ?>
 
+				<?php
+				// Standard WooCommerce hooks — pixel/GTM tracking plugins print
+				// their hidden product-data markup here. Without these, AddToCart
+				// events never reach the dataLayer from this template.
+				global $product;
+				$product = wc_get_product( $product_id );
+				do_action( 'woocommerce_before_add_to_cart_button' );
+				?>
+
 				<!-- Quantity + Add to cart -->
 				<div class="wzp-pd__atc-row">
 					<div class="wzp-pd__qty">
@@ -344,7 +353,8 @@ echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb_schema,
 					<button type="submit"
 					        name="add-to-cart"
 					        value="<?php echo esc_attr( $product_id ); ?>"
-					        class="wzp-pd__atc-btn<?php echo ! $is_in_stock ? ' disabled' : ''; ?>"
+					        class="wzp-pd__atc-btn single_add_to_cart_button<?php echo ! $is_in_stock ? ' disabled' : ''; ?>"
+					        data-product_id="<?php echo esc_attr( $product_id ); ?>"
 					        <?php echo ! $is_in_stock ? 'disabled aria-disabled="true"' : ''; ?>>
 						<?php echo $is_in_stock
 							? esc_html__( 'Add To Bag', 'woo-zee-plugin' )
@@ -360,6 +370,8 @@ echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb_schema,
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
 					</button>
 				</div>
+
+				<?php do_action( 'woocommerce_after_add_to_cart_button' ); ?>
 
 				<!-- Buy It Now -->
 				<?php if ( $is_in_stock ) : ?>
