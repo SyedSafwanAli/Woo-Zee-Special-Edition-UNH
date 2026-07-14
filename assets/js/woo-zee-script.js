@@ -17,14 +17,32 @@
 	// data-currency, data-quantity — printed server-side by card.php and the
 	// product-detail template). Safe no-op when GTM/dataLayer is absent.
 
+	var wzpLastAtcPush = { key: '', time: 0 };
+
 	function wzpPushAddToCartEvent( $button ) {
 		if ( ! $button || ! $button.length ) { return; }
+
+		// GTM4WP (Google Tag Manager for WordPress) pushes its own GA4
+		// ecommerce events for every add-to-cart — skip ours so the same
+		// add is not reported twice. Sites without GTM4WP still get ours.
+		if ( typeof window.gtm4wp_datalayer_name !== 'undefined'
+			|| typeof window.gtm4wp_use_sku_instead !== 'undefined' ) {
+			return;
+		}
 
 		var id = $button.attr( 'data-product_id' );
 		if ( ! id ) { return; }
 
 		var price = parseFloat( $button.attr( 'data-item_price' ) ) || 0;
 		var qty   = parseInt( $button.attr( 'data-quantity' ), 10 ) || 1;
+
+		// De-dupe: ignore an identical push within 500ms (double handlers).
+		var pushKey = id + 'x' + qty;
+		var pushNow = Date.now();
+		if ( wzpLastAtcPush.key === pushKey && ( pushNow - wzpLastAtcPush.time ) < 500 ) {
+			return;
+		}
+		wzpLastAtcPush = { key: pushKey, time: pushNow };
 
 		window.dataLayer = window.dataLayer || [];
 		// Clear the previous ecommerce object (GTM recommended practice).
