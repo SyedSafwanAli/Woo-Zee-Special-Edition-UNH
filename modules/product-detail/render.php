@@ -87,6 +87,16 @@ $is_in_stock = $product->is_in_stock();
 $stock_qty   = $product->get_stock_quantity();
 $is_on_sale  = $product->is_on_sale();
 
+// First category name — used by the Add To Bag button's dataLayer tracking attrs.
+$wzp_track_category = '';
+$wzp_track_cat_ids  = $product->get_category_ids();
+if ( ! empty( $wzp_track_cat_ids ) ) {
+	$wzp_track_term = get_term( absint( $wzp_track_cat_ids[0] ), 'product_cat' );
+	if ( $wzp_track_term instanceof WP_Term && ! is_wp_error( $wzp_track_term ) ) {
+		$wzp_track_category = $wzp_track_term->name;
+	}
+}
+
 $categories = get_the_term_list( $product_id, 'product_cat', '', ', ' );
 $tags        = get_the_term_list( $product_id, 'product_tag', '', ', ' );
 
@@ -355,6 +365,10 @@ echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb_schema,
 					        value="<?php echo esc_attr( $product_id ); ?>"
 					        class="wzp-pd__atc-btn single_add_to_cart_button<?php echo ! $is_in_stock ? ' disabled' : ''; ?>"
 					        data-product_id="<?php echo esc_attr( $product_id ); ?>"
+					        data-item_name="<?php echo esc_attr( $title ); ?>"
+					        data-item_price="<?php echo esc_attr( wc_get_price_to_display( $product ) ); ?>"
+					        data-item_category="<?php echo esc_attr( $wzp_track_category ); ?>"
+					        data-currency="<?php echo esc_attr( get_woocommerce_currency() ); ?>"
 					        <?php echo ! $is_in_stock ? 'disabled aria-disabled="true"' : ''; ?>>
 						<?php echo $is_in_stock
 							? esc_html__( 'Add To Bag', 'woo-zee-plugin' )

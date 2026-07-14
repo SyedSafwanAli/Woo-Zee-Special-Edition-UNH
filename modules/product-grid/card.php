@@ -88,8 +88,10 @@ function wzp_render_product_card( $product_id, $options = array() ) {
 	}
 
 	// ── Category ──────────────────────────────────────────────────────────────
+	// Always resolved — the quick-add button needs it for dataLayer tracking
+	// even when the visible category label is switched off.
 	$category_name = '';
-	if ( $opts['show_category'] ) {
+	{
 		$cat_ids = $product->get_category_ids();
 		if ( ! empty( $cat_ids ) ) {
 			$term = get_term( absint( $cat_ids[0] ), 'product_cat' );
@@ -190,6 +192,10 @@ function wzp_render_product_card( $product_id, $options = array() ) {
 				   data-product_id="<?php echo esc_attr( $id ); ?>"
 				   data-product_sku="<?php echo esc_attr( $sku ); ?>"
 				   data-quantity="1"
+				   data-item_name="<?php echo esc_attr( $name ); ?>"
+				   data-item_price="<?php echo esc_attr( wc_get_price_to_display( $product ) ); ?>"
+				   data-item_category="<?php echo esc_attr( $category_name ); ?>"
+				   data-currency="<?php echo esc_attr( get_woocommerce_currency() ); ?>"
 				   rel="nofollow">
 					<?php esc_html_e( 'Quick Add', 'woo-zee-plugin' ); ?>
 				</a>
@@ -202,7 +208,7 @@ function wzp_render_product_card( $product_id, $options = array() ) {
 		<?php /* ── Card body ──────────────────────────────────────────── */ ?>
 		<div class="wzp-product-card__body">
 
-			<?php if ( $category_name ) : ?>
+			<?php if ( $opts['show_category'] && $category_name ) : ?>
 			<span class="wzp-product-card__category"><?php echo esc_html( $category_name ); ?></span>
 			<?php endif; ?>
 

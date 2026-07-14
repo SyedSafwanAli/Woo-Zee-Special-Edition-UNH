@@ -11,6 +11,40 @@
 ( function ( $, wzpData ) {
 	'use strict';
 
+	// ── dataLayer: GA4 add_to_cart event ──────────────────────────────────────
+	// Reads product data from the clicked button's data attributes
+	// (data-product_id, data-item_name, data-item_price, data-item_category,
+	// data-currency, data-quantity — printed server-side by card.php and the
+	// product-detail template). Safe no-op when GTM/dataLayer is absent.
+
+	function wzpPushAddToCartEvent( $button ) {
+		if ( ! $button || ! $button.length ) { return; }
+
+		var id = $button.attr( 'data-product_id' );
+		if ( ! id ) { return; }
+
+		var price = parseFloat( $button.attr( 'data-item_price' ) ) || 0;
+		var qty   = parseInt( $button.attr( 'data-quantity' ), 10 ) || 1;
+
+		window.dataLayer = window.dataLayer || [];
+		// Clear the previous ecommerce object (GTM recommended practice).
+		window.dataLayer.push( { ecommerce: null } );
+		window.dataLayer.push( {
+			event: 'add_to_cart',
+			ecommerce: {
+				currency: $button.attr( 'data-currency' ) || '',
+				value:    Math.round( price * qty * 100 ) / 100,
+				items: [ {
+					item_id:       String( id ),
+					item_name:     $button.attr( 'data-item_name' ) || '',
+					item_category: $button.attr( 'data-item_category' ) || '',
+					price:         price,
+					quantity:      qty
+				} ]
+			}
+		} );
+	}
+
 	// ── Wishlist (localStorage fallback) ──────────────────────────────────────
 	// Active only when YITH WooCommerce Wishlist is NOT present.
 	// Persists an array of product IDs under the key 'wzp_wishlist'.
@@ -473,6 +507,9 @@
 				// Remove WooCommerce's injected "View cart" anchor everywhere
 				$( '.added_to_cart.wc-forward' ).remove();
 
+				// GA4 add_to_cart event → dataLayer (detail page + quick-add).
+				wzpPushAddToCartEvent( $button );
+
 				self.ajaxCart( 'wzp_get_cart', {} );
 				openCart();
 
@@ -755,7 +792,13 @@
 				// Use WooCommerce's wc-ajax endpoint to silently add then redirect.
 				// .serialize() omits the submit button value — add product_id manually.
 				// (No "add-to-cart" param — it would double-add, see bindAddToBag.)
-				var productId = $btn.closest( '.wzp-pd' ).find( '.wzp-pd__atc-btn' ).val() || $form.data( 'product-id' );
+				var $atcBtn   = $btn.closest( '.wzp-pd' ).find( '.wzp-pd__atc-btn' );
+				var productId = $atcBtn.val() || $form.data( 'product-id' );
+
+				// dataLayer add_to_cart before the redirect to checkout.
+				var buyQty = parseInt( $form.find( 'input[name="quantity"]' ).val(), 10 ) || 1;
+				$atcBtn.attr( 'data-quantity', buyQty );
+				wzpPushAddToCartEvent( $atcBtn );
 				$.ajax( {
 					type:     'POST',
 					url:      ( wzpData && wzpData.wcAjaxUrl ) ? wzpData.wcAjaxUrl.replace( '%%endpoint%%', 'add_to_cart' ) : '/?wc-ajax=add_to_cart',
